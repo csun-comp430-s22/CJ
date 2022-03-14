@@ -36,9 +36,10 @@ public class Tokenizer {
 			put("<", new LessThanToken());
 			put(">=", new GreaterThanOrEqualsToken());
 			put(">", new GreaterThanToken());
+			put("println", new PrintToken());
 		}
-		
+
 	};
-	
-	
+
+
 }
