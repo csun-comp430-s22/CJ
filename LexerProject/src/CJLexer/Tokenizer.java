@@ -24,6 +24,18 @@ public class Tokenizer {
 			put("(", new LeftParenToken());
 			put(")", new RightParenToken());
 			put(";", new SemiColonToken());
+			put("+", new PlusSignToken());
+			put("-", new MinusSignToken());
+			put("*", new MultSignToken());
+			put("/", new DivSignToken());
+			put("^", new ExpSignToken());
+			put("%", new ModSignToken());
+			put("==", new EqualsToToken());
+			put("=", new EqualsToken());
+			put("<=", new LessThanOrEqualsToken());
+			put("<", new LessThanToken());
+			put(">=", new GreaterThanOrEqualsToken());
+			put(">", new GreaterThanToken());
 		}
 		
 	};
