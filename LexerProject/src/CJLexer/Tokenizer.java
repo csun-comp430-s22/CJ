@@ -41,6 +41,8 @@ public class Tokenizer {
 			put("else", new ElseToken());
 			put("&&", new AndToken());
 			put("||", new OrToken());
+			put("!", new NotToken());
+			put("while", new WhileToken());
 		}
 
 	};
