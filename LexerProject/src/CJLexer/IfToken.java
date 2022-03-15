@@ -1,4 +1,4 @@
-
+package CJLexer;
 public class IfToken implements Token {
     public int hashCode() {
         return 40;
