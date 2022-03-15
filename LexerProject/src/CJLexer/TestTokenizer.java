@@ -7,9 +7,6 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 
 public class TestTokenizer {
-	
-	 // REMINDER TO REMOVE ObjectToken, ColonToken, and maybe QuoteToken since we have QuotedStringToken now 
-	
     // specify null for expected if it's not supposed to tokenize
 	
     public void assertTokenizes(final String input,
