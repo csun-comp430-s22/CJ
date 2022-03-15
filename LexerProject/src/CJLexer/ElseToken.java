@@ -1,4 +1,4 @@
-
+package CJLexer;
 public class ElseToken implements Token{
     public int hashCode() {
         return 41;
