@@ -7,7 +7,6 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 
 public class TestTokenizer {
-    // specify null for expected if it's not supposed to tokenize
 	
     public void assertTokenizes(final String input,
                                 final Token[] expected) {
