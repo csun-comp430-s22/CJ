@@ -77,13 +77,13 @@ public class Parser {
 				
 				if (op != null) {
 					
-					// op exists then need a right
+					// If an operation exists, then must have a right expression
 					final ParseResult<Exp> right = parseSomething(finalResult.tokenPos + 1);
 					
 					finalResult = new ParseResult<Exp>(new OpExp(finalResult.result, op, right.result),
 							right.tokenPos);
 				} else {
-					// we don't have an op. return whatever we have
+					// Else no operation, then return whatever there is
 					return finalResult;
 				}
 			}
@@ -168,7 +168,6 @@ public class Parser {
 		} 
 		else if (current instanceof NameToken && (tokens.length <= startPos + 1 
 				|| !(getTokenPos(startPos + 1) instanceof PeriodToken))) { 
-			//Else check if it's a variable by being a NameToken.................
 			
 			resultExp = new VariableExp(((NameToken) current).name);
 			resultPos = startPos + 1;
@@ -181,7 +180,7 @@ public class Parser {
 			
 		} 
 		else if (current instanceof ThisToken) { 
-			// this.var
+			// Variable could be of this.variable
 			assertTokenAtPos(new PeriodToken(), startPos + 1);
 			
 			final ParseResult<Exp> variable = parseExp(startPos + 2);
@@ -190,17 +189,17 @@ public class Parser {
 			resultPos = startPos + 3;
 			
 		} 
-		/*else if (current instanceof PrintToken) { 
-		 * // println(var);
-			assertTokenAtPos(new LeftParenToken(), startPos + 1);
-			final ParseResult<Exp> expression = parseExp(startPos + 2);
-			assertTokenAtPos(new RightParenToken(), startPos + 3);
-			resultExp = new PrintExp(expression.result);
-			resultPos = startPos + 4;
-		}*/ 
+//		else if (current instanceof PrintToken) { 
+//		 // println(var);
+//			assertTokenAtPos(new LeftParenToken(), startPos + 1);
+//			final ParseResult<Exp> expression = parseExp(startPos + 2);
+//			assertTokenAtPos(new RightParenToken(), startPos + 3);
+//			resultExp = new PrintExp(expression.result);
+//			resultPos = startPos + 4;
+//		} 
 		else if (current instanceof NameToken && getTokenPos(startPos + 1) 
 				instanceof PeriodToken) { 
-			// call method
+			
 			assertTokenAtPos(new PeriodToken(), startPos + 1);
 			
 			final ParseResult<Exp> methodname = parseExp(startPos + 2);
@@ -232,7 +231,7 @@ public class Parser {
 		} 
 		else if (current instanceof NewToken && 
 				getTokenPos(startPos+3) instanceof LeftParenToken) {    
-			//NEW EXP FOR NON GENERIC CLASSES
+			// new expression non-generic classes
 			
 			assertTokenAtPos(new PeriodToken(), startPos + 1);
 			
@@ -270,7 +269,7 @@ public class Parser {
 		} 
 		else if(current instanceof NewToken && getTokenPos(startPos+3) 
 				instanceof LessThanToken) {	
-			// NEW EXP FOR GENERIC CLASSES
+			// new expression for generic classes
 			
 			assertTokenAtPos(new PeriodToken(), startPos + 1);
 			
@@ -288,8 +287,7 @@ public class Parser {
 						|| getTokenPos(newPos) instanceof VoidToken 
 						|| getTokenPos(newPos) instanceof NameToken) {
 					
-					//RESUME UNCOMMENT
-					//typeList.add(parseType(newPos).result);
+					typeList.add(parseType(newPos).result);
 					newPos++;
 					
 				} 
@@ -334,7 +332,6 @@ public class Parser {
 			
 		} 
 		else if (current instanceof LeftParenToken) { 
-			// (EXP)
 			
 			final ParseResult<Exp> nested = parseExp(startPos + 1);
 			assertTokenAtPos(new RightParenToken(), nested.tokenPos);
@@ -351,39 +348,38 @@ public class Parser {
 	}
 	//End of parsePrimary
 	
-	/*
 	public Statement parseSingleStatement() throws ParserException {
 		
 		return parseSingleStatement(0).result;
 	}
-	*/
 	
 	
-//	public ConstructorDef parseConstructorDef(String classname) throws ParserException {
-//		return parseConstructorDef(0, classname).result;
-//	}
-//	
-//	
-//	
-//	public ClassDefExp parseClassDef() throws ParserException {
-//		return parseClassDef(0).result;
-//	}
+	
+	public ConstructorDef parseConstructorDef(String classname) throws ParserException {
+		return parseConstructorDef(0, classname).result;
+	}
 	
 	
-	/*
+	
+	public ClassDefExp parseClassDef() throws ParserException {
+		return parseClassDef(0).result;
+	}
+	
+	
+	
 	public ClassDefExp parseGenericClassDef() throws ParserException {
 		return parseGenericClassDef(0).result;
 	}
-	*/
+	
 
-	/*
+	
 	public Program parseProgram() throws ParserException {
 		return parseProgram(0).result;
 	}
-	*/
+	
 	
 	//Start of parseClassDef
-	/*
+	
 	private ParseResult<ClassDefExp> parseClassDef(final int startPos) throws ParserException {
 		
 		final Token current = getTokenPos(startPos);
@@ -441,8 +437,6 @@ public class Parser {
 				if (getTokenPos(currentPos + 1) instanceof NameToken && 
 						getTokenPos(currentPos + 2) instanceof LeftParenToken) {
 					
-					// constructor
-					
 					ParseResult<ConstructorDef> constructorDef = parseConstructorDef(currentPos, classname);
 					
 					currentPos = constructorDef.tokenPos;
@@ -463,14 +457,12 @@ public class Parser {
 					
 					if (getTokenPos(currentPos + 3) instanceof LeftParenToken) {
 						
-						// method dec
 						ParseResult<MethodDefExp> methodDefExp = parseMethodDefExp(currentPos);
 						
 						currentPos = methodDefExp.tokenPos;
 						methodlist.add(methodDefExp.result);
 					} 
 					else {
-						// member var dec
 						
 						assertTokenAtPos(new SemiColonToken(), currentPos + 3);
 						
@@ -592,13 +584,13 @@ public class Parser {
 					String name = getTokenPos(currentPos+2).toString();
 					
 					if(getTokenPos(currentPos+3) instanceof LeftParenToken) {
-						//method dec
+						
 						ParseResult<MethodDefExp> methodDefExp = parseMethodDefExp(currentPos); 
 						currentPos = methodDefExp.tokenPos; 
 						methodlist.add(methodDefExp.result);
 					} 
 					else {
-						//member var dec
+						
 						assertTokenAtPos(new SemiColonToken(), currentPos+3); 
 						memberlist.add(new InstanceDecExp(mod.result, new VariableDecExp(type.result, new VariableExp(name))));
 						currentPos+=4; 
@@ -746,7 +738,7 @@ public class Parser {
 		while (pos < tokens.length) {
 			if ((currentToken instanceof PublicToken || currentToken instanceof PrivateToken)
 					&& getTokenPos(pos + 1) instanceof ClassToken) {
-				// ClassDecExp
+				
 				if(getTokenPos(pos+3) instanceof LessThanToken) {
 					ParseResult<GenericClassDefinition> gClassDef = parseGenericClassDef(pos); 
 					classDefList.add(gClassDef.result); 
@@ -757,7 +749,7 @@ public class Parser {
 					pos = classDef.tokenPos;
 				}
 			} else {
-				// Statement
+				
 				ParseResult<Statement> statement = parseSingleStatement(pos);
 				statementList.add(statement.result);
 				pos = statement.tokenPos;
@@ -782,6 +774,322 @@ public class Parser {
 		}
 	}
 	
-	*/
+	// returns null if the token is not a modifier
+	private ParseResult<Type> parseType(int startPos) throws ParserException {
+		Token m = getTokenPos(startPos);
+
+		//Need boolean type
+		if (m instanceof IntToken) {
+			return new ParseResult<Type>(new IntType(), startPos + 1);
+		}
+		else if (m instanceof VoidToken) {
+			return new ParseResult<Type>(new VoidType(), startPos + 1);
+		} 
+		else if (m instanceof StringToken) {
+			return new ParseResult<Type>(new StringType(), startPos + 1);
+		} 
+		else if(m instanceof NameToken && getTokenPos(startPos+1) instanceof LessThanToken){
+			
+			ArrayList<Type> typeList = new ArrayList<Type>(); 
+			int newPos= startPos+2; 
+			
+			while(!(getTokenPos(newPos) instanceof GreaterThanToken)) {
+				
+				if(getTokenPos(newPos) instanceof IntToken 
+						|| getTokenPos(newPos) instanceof StringToken 
+						||getTokenPos(newPos) instanceof VoidToken 
+						|| getTokenPos(newPos) instanceof NameToken) {
+					
+					typeList.add(parseType(newPos).result);
+					newPos++; 
+					
+				} 
+				else if(getTokenPos(newPos) instanceof CommaToken 
+						&& (getTokenPos(newPos-1) instanceof IntToken) 
+						|| getTokenPos(newPos-1) instanceof StringToken 
+						|| getTokenPos(newPos-1) instanceof VoidToken 
+						|| getTokenPos(newPos-1) instanceof NameToken) {
+					
+					newPos++; 
+				} 
+				else {
+					throw new ParserException("Invalid Token, expected TypeToken or CommaToken at pos: " + newPos);
+				}
+			}
+			return new ParseResult<Type>(new GenericObjectType(((NameToken)m).name, typeList), newPos+1);
+		} 
+		else if (m instanceof NameToken) {
+			return new ParseResult<Type>(new ObjectType(((NameToken) m).name), startPos + 1);
+		} 
+		else {
+			throw new ParserException("Expected Type at " + startPos);
+		}
+	}
+	
+	private ParseResult<ArrayList<Statement>> parseStatements(int startPos) throws ParserException {
+		
+		ArrayList<Statement> block = new ArrayList<Statement>();
+		int i = startPos;
+		
+		while (!(getTokenPos(i) instanceof RightCurlyToken)) {
+			
+			ParseResult<Statement> statementResult = parseSingleStatement(i);
+			block.add(statementResult.result);
+			i = statementResult.tokenPos;
+		}
+		return new ParseResult<ArrayList<Statement>>(block, i);
+	}
+	
+	private ParseResult<ArrayList<Statement>> parseConstructorStatements(int startPos) throws ParserException {
+		
+		ArrayList<Statement> block = new ArrayList<Statement>();
+		int i = startPos;
+		
+		while (!(getTokenPos(i) instanceof RightCurlyToken)) {
+			
+			ParseResult<Statement> statementResult = parseSingleConstructorStatement(i);
+			block.add(statementResult.result);
+			i = statementResult.tokenPos;
+		}
+		return new ParseResult<ArrayList<Statement>>(block, i);
+	}
+	
+	private ParseResult<Statement> parseSingleStatement(int startPos) throws ParserException {
+		
+		int pos = startPos;
+		ParseResult<Statement> result = null;
+		
+		if (!(getTokenPos(pos) instanceof SemiColonToken)) {
+			
+			if (getTokenPos(pos) instanceof ReturnToken) {
+				
+				if (getTokenPos(pos + 1) instanceof SemiColonToken) {
+					
+					result = new ParseResult<Statement>(new ReturnStmt(), pos + 1);
+				}
+				else {
+					ParseResult<Exp> expResult = parseExp(pos + 1);
+					result = new ParseResult<Statement>(new ReturnStmt((Exp) 
+							parseExp(pos + 1).result), expResult.tokenPos);
+				}
+			} 
+			else if ((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos + 1) instanceof EqualsToken)) {
+				
+				ParseResult<EqualsStmt> assignmentResult = parseAssignment(pos);
+				result = new ParseResult<Statement>(assignmentResult.result, assignmentResult.tokenPos);
+				
+			} 
+			else if((getTokenPos(pos) instanceof ThisToken)
+					&& (getTokenPos(pos+1) instanceof PeriodToken) 
+					&& (getTokenPos(pos+2) instanceof NameToken) 
+					&& (getTokenPos(pos+3) instanceof EqualsToken)) {
+				
+				ParseResult<EqualsStmt> assignmentResult = parseAssignment(pos); 
+				result = new ParseResult<Statement>(assignmentResult.result, assignmentResult.tokenPos);
+				
+			}
+			else if ((getTokenPos(pos) instanceof IntToken 
+					|| getTokenPos(pos) instanceof StringToken)
+					&& (getTokenPos(pos + 1) instanceof NameToken)) {
+				
+				ParseResult<VariableDecExp> variableDecExpResult = parseVariableDecExp(pos);
+				result = new ParseResult<Statement>(variableDecExpResult.result, variableDecExpResult.tokenPos);
+				
+			} 
+			else if ((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos + 1) instanceof NameToken)
+					&& (getTokenPos(pos + 2) instanceof SemiColonToken)) {
+				
+				ParseResult<VariableDecExp> variableDecExpResult = parseVariableDecExp(pos);
+				result = new ParseResult<Statement>(variableDecExpResult.result, variableDecExpResult.tokenPos);
+				
+			} 
+			else if((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos +1) instanceof PeriodToken) 
+					&& (getTokenPos(pos+2) instanceof NameToken) 
+					&& (getTokenPos(pos+3) instanceof LeftParenToken)) {
+				
+				ParseResult<IndependentMethodCallStmt> independentMethodCallStmtResult = parseIndependentMethodCallStmt(pos);
+				result = new ParseResult<Statement>(independentMethodCallStmtResult.result, independentMethodCallStmtResult.tokenPos);
+				
+			} 
+			else if((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos+1) instanceof LessThanToken)) {
+				
+				ParseResult<VariableDecExp> variableDecExpResult = parseVariableDecExp(pos);
+				result = new ParseResult<Statement>(variableDecExpResult.result, variableDecExpResult.tokenPos);
+			} 
+			else if ((getTokenPos(pos) instanceof PrintToken)) { //For printing variables
+				
+				assertTokenAtPos(new LeftParenToken(), pos + 1);
+				final ParseResult<Exp> expression = parseExp(pos + 2);
+				assertTokenAtPos(new RightParenToken(), pos + 3);
+				
+				result = new ParseResult<Statement>(new PrintExp(expression.result), startPos + 4);
+			}
+			
+			if (result == null) {
+				throw new ParserException("Expected valid statement at: " + pos);
+				
+			} 
+			else if (!(getTokenPos(result.tokenPos) instanceof SemiColonToken)) {
+				throw new ParserException("Expected semicolon at: " + result.tokenPos);
+			} 
+			else {
+				return new ParseResult<Statement>(result.result, result.tokenPos + 1);
+			}
+		} else {
+			throw new ParserException("Empty Statement(double semicolon) at: " + pos);
+		}
+	}
+	
+	private ParseResult<Statement> parseSingleConstructorStatement(int startPos) throws ParserException {
+		
+		int pos = startPos;
+		ParseResult<Statement> result = null;
+		
+		if (!(getTokenPos(pos) instanceof SemiColonToken)) {
+			
+			if ((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos + 1) instanceof EqualsToken)) {
+				
+				ParseResult<EqualsStmt> assignmentResult = parseAssignment(pos);
+				result = new ParseResult<Statement>(assignmentResult.result, assignmentResult.tokenPos);
+				
+			} 
+			else if((getTokenPos(pos) instanceof ThisToken)
+					&& (getTokenPos(pos+1) instanceof PeriodToken)
+					&& (getTokenPos(pos+2) instanceof NameToken)
+					&&(getTokenPos(pos+3) instanceof EqualsToken)) {
+				
+				ParseResult<EqualsStmt> assignmentResult = parseAssignment(pos); 
+				result = result = new ParseResult<Statement>(assignmentResult.result, assignmentResult.tokenPos);
+				
+			}
+			else if ((getTokenPos(pos) instanceof IntToken 
+					|| getTokenPos(pos) instanceof StringToken)
+					&& (getTokenPos(pos + 1) instanceof NameToken)) {
+				
+				ParseResult<VariableDecExp> variableDecExpResult = parseVariableDecExp(pos);
+				result = new ParseResult<Statement>(variableDecExpResult.result, variableDecExpResult.tokenPos);
+				
+			} 
+			else if ((getTokenPos(pos) instanceof NameToken) && 
+					(getTokenPos(pos + 1) instanceof NameToken)
+					&& (getTokenPos(pos + 2) instanceof SemiColonToken)) {
+				
+				ParseResult<VariableDecExp> variableDecExpResult = parseVariableDecExp(pos);
+				result = new ParseResult<Statement>(variableDecExpResult.result, variableDecExpResult.tokenPos);
+				
+			} 
+			else if((getTokenPos(pos) instanceof NameToken) 
+					&& (getTokenPos(pos +1) instanceof PeriodToken) 
+					&& (getTokenPos(pos+2) instanceof NameToken) 
+					&& (getTokenPos(pos+3) instanceof LeftParenToken)) {
+				
+			ParseResult<IndependentMethodCallStmt> independentMethodCallStmtResult = parseIndependentMethodCallStmt(pos);
+			result = new ParseResult<Statement>(independentMethodCallStmtResult.result, independentMethodCallStmtResult.tokenPos);
+			
+			}
+
+			if (result == null) {
+				throw new ParserException("Expcted valid statement at: " + pos);
+			} 
+			else if (!(getTokenPos(result.tokenPos) instanceof SemiColonToken)) {
+				throw new ParserException("Expected semicolon at: " + result.tokenPos);
+			} 
+			else {
+				return new ParseResult<Statement>(result.result, result.tokenPos + 1);
+			}
+		} 
+		else {
+			throw new ParserException("Empty Statement(double semicolon) at: " + pos);
+		}
+	}
+	
+	private ParseResult<IndependentMethodCallStmt> parseIndependentMethodCallStmt(int startPos) throws ParserException {
+		
+		int pos = startPos;
+		
+		if((getTokenPos(pos) instanceof NameToken) 
+				&& (getTokenPos(pos +1) instanceof PeriodToken) 
+				&& (getTokenPos(pos+2) instanceof NameToken) 
+				&& (getTokenPos(pos+3) instanceof LeftParenToken)) {
+			
+			VariableExp input = new VariableExp(((NameToken)getTokenPos(pos)).name);
+			VariableExp methodname = new VariableExp(((NameToken)getTokenPos(pos+2)).name);
+			
+			pos = pos + 4;
+			
+			ArrayList<VariableExp> params = new ArrayList<VariableExp>();
+			
+			while(!(getTokenPos(pos) instanceof RightParenToken)){
+				
+				if(!(getTokenPos(pos) instanceof NameToken)){
+					throw new ParserException("Expected Parameter Name at: " + pos);
+				}
+				
+				params.add(new VariableExp(((NameToken) getTokenPos(pos)).name));
+				
+				if(!(getTokenPos(pos+1) instanceof RightParenToken)) {
+					
+					assertTokenAtPos(new CommaToken(), pos+1);
+					pos += 2;
+					
+				}
+				else {
+					pos += 1;
+				}
+			}
+			assertTokenAtPos(new RightParenToken(), pos);
+			IndependentMethodCallStmt result = new IndependentMethodCallStmt(new CallMethodExp(input, methodname, params));
+			return new ParseResult<IndependentMethodCallStmt>(result, pos+1);
+			
+		}
+		else {
+			throw new ParserException("Expected Method Name at: " + pos);
+		}
+			
+	}
+	
+	private ParseResult<EqualsStmt> parseAssignment(int startPos) throws ParserException {
+		
+		int pos = startPos;
+		
+		if ((getTokenPos(pos) instanceof NameToken) 
+				&& (getTokenPos(pos + 1) instanceof EqualsToken)) {
+			
+			ParseResult<Exp> expResult = parseExp(pos + 2);
+			return new ParseResult<EqualsStmt>(new EqualsStmt(new VariableExp(getTokenPos(pos).toString()), 
+					expResult.result, false), expResult.tokenPos);
+			
+		}
+		else if((getTokenPos(pos) instanceof ThisToken)){
+			
+			ParseResult<Exp> expResult = parseExp(pos+4);
+			
+			return new ParseResult<EqualsStmt>(new EqualsStmt(new VariableExp(getTokenPos(pos+2).toString()), 
+					expResult.result, true), expResult.tokenPos);
+		}
+		else {
+			throw new ParserException("Expected variable and assignment at: " + pos);
+		}
+	}
+	
+	private ParseResult<VariableDecExp> parseVariableDecExp(int startPos) throws ParserException {
+		
+		int currentPos = startPos;
+		ParseResult<Type> typeResult = parseType(currentPos);
+		currentPos = typeResult.tokenPos;
+		
+		if (!(getTokenPos(currentPos) instanceof NameToken)) {
+			throw new ParserException("Expected Variable Name at " + currentPos);
+		} 
+		else {
+			return new ParseResult<VariableDecExp>(new VariableDecExp(typeResult.result, 
+					new VariableExp(getTokenPos(currentPos).toString())), currentPos + 1);
+		}
+	}
 	
 }
