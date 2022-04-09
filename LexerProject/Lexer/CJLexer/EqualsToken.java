@@ -2,7 +2,7 @@ package CJLexer;
 
 public class EqualsToken implements Token{
     public int hashCode() {
-		return 51;
+		return 25;
 	}
 	
 	public boolean equals(final Object other) {
