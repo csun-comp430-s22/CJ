@@ -1,7 +1,7 @@
 package CJLexer;
 public class ClassToken implements Token{
 	public int hashCode() {
-		return 90;
+		return 22;
 	}
 	
 	public boolean equals(final Object other) {
