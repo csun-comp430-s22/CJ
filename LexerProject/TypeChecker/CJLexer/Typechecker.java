@@ -146,6 +146,7 @@ public class Typechecker {
 		new Typechecker(prog);
 	}
 	
+	//Typechecker for classes
 	public void Classcheck (final ClassDefExp c) throws TypeErrorException {
 		// check if class extends another class and check to see if that extending class exists
 		if(c.extending==true) {
@@ -165,6 +166,7 @@ public class Typechecker {
 		}
 	}
 	
+	//Typechecker for instances
 	public void Instancecheck(final InstanceDecExp i) throws TypeErrorException{ 
 		//Checking if type exists if instanceof class object type
 		if(i.var.type instanceof ObjectType) {
@@ -216,6 +218,8 @@ public class Typechecker {
 				typecheckStmt(s);
 			}
 		}
+	
+	//Typechecker for the constructor
 		public void Constructorcheck(final ConstructorDef cd) throws TypeErrorException {
 			inConstructor = true;
 			for (int i = 0; i < constructors.get(currentClass).size(); i++) {
@@ -245,5 +249,105 @@ public class Typechecker {
 				}
 			}
 			inConstructor = false;
+	       }
+	
+	//Typechecker for statements
+		public void Statementcheck(final Statement s) throws TypeErrorException {
+			if (currentClass != null) {
+				if (s instanceof AssignmentStmt) {
+					Assignmentcheck((AssignmentStmt) s);
+				} else if (s instanceof ReturnStmt) {
+					Type methodType = methods.get(this.currentClass).get(currentMethod).type;
+					Type returnType = typeofExp(((ReturnStmt) s).e);
+
+					if (!(methodType.equals(returnType)))
+						throw new TypeErrorException("Method type of method " + this.currentMethod
+								+ " does not match type returned by: " + s.toString());
+				} else if (s instanceof VariableDecExp) {
+					//Generic type check
+					if(((VariableDecExp)s).type instanceof GenericObjectType) {
+						VariableDecExp temp = (VariableDecExp)s; 
+						if(!ensureGenericClassExists(((GenericObjectType)(temp.type)).className, ((GenericObjectType)temp.type).typeArray.size())){
+							throw new TypeErrorException("Generic class does not exist: "+temp.var.name+"<"+ ((GenericObjectType)temp.type).typeArray.toString());
+						}
+					}
+					if (methods.get(this.currentClass).get(this.currentMethod).parameters.contains(s))
+						throw new TypeErrorException(
+								"Variable " + ((VariableDecExp) s).var.name + " already declared in parameters");
+					else {
+						variables.get(currentClass).get(currentMethod).put(((VariableDecExp) s).var.name,
+								((VariableDecExp) s));
+					}
+				} else if(s instanceof IndependentMethodCallStmt) {
+					typeofExp(((IndependentMethodCallStmt)s).methodcall);
+				}
+			} else {
+				if (s instanceof AssignmentStmt) {
+					Assignmentcheck((AssignmentStmt) s);
+				} else if (s instanceof VariableDecExp) {
+					//Generic type check
+					if(((VariableDecExp)s).type instanceof GenericObjectType) {
+						VariableDecExp temp = (VariableDecExp)s; 
+						if(!ensureGenericClassExists(((GenericObjectType)(temp.type)).className, ((GenericObjectType)temp.type).typeArray.size())){
+							throw new TypeErrorException("Generic class does not exist: "+temp.var.name+"<"+ ((GenericObjectType)temp.type).typeArray.toString());
+						}
+					}
+					if (programVariables.containsKey(((VariableDecExp) s).var.name))
+						throw new TypeErrorException(
+								"Variable " + ((VariableDecExp) s).var.name + " already declared in parameters");
+					else {
+						programVariables.put(((VariableDecExp) s).var.name, ((VariableDecExp) s));
+					}
+				} else if(s instanceof IndependentMethodCallStmt) {
+					typeofExp(((IndependentMethodCallStmt)s).methodcall); 
+				}
+			}
 		}
+	
+	//Typecking for assignments
+	public void Assignmentcheck(final AssignmentStmt as) throws TypeErrorException {
+		Type left;
+		Type right;
+		//If left is this.exp, make sure it checks instance variables only for assigning type to left
+		if(as.leftIsThis) {
+			InstanceDecExp temp3 = null;
+			InstanceDecExp temp4 = null; 
+			try {
+				temp3 = this.instances.get(this.currentClass).get(as.v.name);
+			} catch (Exception e2) {
+			}
+			String s = this.currentClass;
+			while(retrieveClass(s).extending) {
+				if(this.instances.get(retrieveClass(s).extendingClass).get(as.v.name)!=null) {
+					temp4 = this.instances.get(retrieveClass(s).extendingClass).get(as.v.name);
+					break; 
+				}
+				s = retrieveClass(s).extendingClass;
+			}
+			// Instance variables check
+			if (temp3 != null) {
+				left = temp3.var.type;
+				right = typeofExp(as.e);
+			} else if(temp4 != null) {
+				left = temp4.var.type; 
+				right = typeofExp(as.e);
+			}
+			else {
+				throw new TypeErrorException("Using this.var when there is no instance var declared: "+as.v.name + " in class: " +currentClass);
+			}
+		}
+		else {
+			left = lookupVariable(as.v.name);
+			right = typeofExp(as.e);
+		}
+		if(right instanceof CustomType && classes.get(left.toString())!=null){
+			String s1 = classes.get(left.toString()).extendingClass;
+			String s2 = classes.get(right.toString()).name; 
+			if(s1.equals(s2)){
+				return; 
+			}
+		}
+		if (!left.toString().equals(right.toString()))
+			throw new TypeErrorException("Assignment Statements must have matching sides: " + as.toString());
+	}
 }
