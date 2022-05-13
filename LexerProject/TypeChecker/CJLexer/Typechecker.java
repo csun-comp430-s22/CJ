@@ -142,4 +142,108 @@ public class Typechecker {
 			}
 		}
 	}
+		public static void Programcheck(final Program prog) throws TypeErrorException {
+		new Typechecker(prog);
+	}
+	
+	public void Classcheck (final ClassDefExp c) throws TypeErrorException {
+		// check if class extends another class and check to see if that extending class exists
+		if(c.extending==true) {
+			if(!ensureClassExists(c.extendingClass)) {
+				throw new TypeErrorException("Extending class is non-existent: "+c.extendingClass);
+			}
+		}
+		for(InstanceDecExp i: c.members) {
+			Instancecheck(i);
+		}
+		this.currentClass = c.name;
+		for (ConstructorDef cd : c.constructors) {
+			Constructorcheck(cd);
+		}
+		for (MethodDefExp m : c.methods) {
+			Methodcheck(m);
+		}
+	}
+	
+	public void Instancecheck(final InstanceDecExp i) throws TypeErrorException{ 
+		//Checking if type exists if instanceof class object type
+		if(i.var.type instanceof ObjectType) {
+			Boolean bool = false;
+			for(ClassDefExp c: classes.values()) {
+				if(c.name.equals(i.var.type.toString())) {
+					bool=true; 
+				}
+				//Check for generic variables if they exist
+				if(c instanceof GenericClassDefinition) {
+					for(VariableExp v: ((GenericClassDefinition)c).genericList) {
+						if(v.name.equals(i.var.type.toString())) {
+							bool=true; 
+						}
+					}
+				}
+			}
+			if(!bool) {
+				throw new TypeErrorException("Class type or generic type cannnot be found"
+						+ ": "+i.var.type.toString()+" for instance variable: "+i.var.var.name.toString());
+			}
+		}
+	}
+	
+	// Typechecking for methods
+		public void Methodcheck(final MethodDefExp m) throws TypeErrorException {
+			this.currentMethod = m.name;
+			//Checking if return type exists if instanceof class object type
+			if(m.type instanceof ObjectType) {
+				Boolean bool = false; 
+				for(ClassDefExp c: classes.values()) {
+					if(c.name.equals(m.type.toString())) {
+						bool=true; 
+					}
+					//Check for generic variables if they exist
+					if(c instanceof GenericClassDefinition) {
+						for(VariableExp v: ((GenericClassDefinition)c).genericList) {
+							if(v.name.equals(m.type.toString())) {
+								bool=true; 
+							}
+						}
+					}
+				}
+				if(!bool) {
+					throw new TypeErrorException("Class type or generic type not found: "+m.type.toString()+" for method: "+ m.name);
+				}
+			}
+			for (Statement s : m.block) {
+				typecheckStmt(s);
+			}
+		}
+		public void Constructorcheck(final ConstructorDef cd) throws TypeErrorException {
+			inConstructor = true;
+			for (int i = 0; i < constructors.get(currentClass).size(); i++) {
+				if (constructors.get(currentClass).get(i).equals(cd)) {
+					this.currentConstructor = i;
+					break;
+				}
+			}
+
+			for (Statement s : cd.block) {
+				if (s instanceof AssignmentStmt) {
+					AssignmentStmt as = (AssignmentStmt) s;
+					typecheckAssignment(as);
+				} else if (s instanceof VariableDecExp) {
+					if(((VariableDecExp) s).type instanceof CustomType){
+						if(!ensureClassExists(((VariableDecExp) s).type.toString())) {
+							throw new TypeErrorException("Class type not found: "+((VariableDecExp)s).type.toString());
+						}
+					}
+					if (constructors.get(this.currentClass).get(currentConstructor).parameters.contains(s))
+						throw new TypeErrorException(
+								"Variable " + ((VariableDecExp) s).var.name + " already declared in parameters");
+					else {
+						constructorVariableDec.get(currentClass).get(currentConstructor).put(((VariableDecExp) s).var.name,
+								((VariableDecExp) s));
+					}
+				}
+			}
+			inConstructor = false;
+		}
 }
